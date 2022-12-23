@@ -1,13 +1,22 @@
 import pionRed from "../../../assets/pion-red.svg";
 import pionBlue from "../../../assets/pion-blue.svg";
+import {connect} from "react-redux";
 
-const PionPlayer = ({playerNum}) => {
+const PionPlayer = (props) => {
+    const {playerNum, game} = props
     const pions = [
         <img style={{width: '24px', height: '24px'}} src={pionRed} alt="pion"/>,
         <img style={{width: '24px', height: '24px'}} src={pionBlue} alt="pion"/>
     ]
-    return pions[playerNum - 1]
+    if (playerNum) {
+        return pions[playerNum - 1]
+    } else {
+        return pions[game.currentPlayer - 1]
+    }
+
 
 }
-
-export default PionPlayer;
+const mapStateToProps = state => {
+    return {game: state.gameReducer};
+};
+export default connect(mapStateToProps)(PionPlayer);

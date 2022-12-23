@@ -4,32 +4,41 @@ import DiceThree from "./DiceThree";
 import DiceFour from "./DiceFour";
 import DiceFive from "./DiceFive";
 import DiceSix from "./DiceSix";
+import {rollDiceRequestAction} from "../../../state/game/gameAction";
+import {connect} from "react-redux";
+import {useEffect, useState} from "react";
 
 const Dice = (props) => {
-    let diceNum;
-    const {num, onRoll} = props;
-    switch (num) {
-        case 1:
-            diceNum = <DiceOne/>
-            break;
-        case 2:
-            diceNum = <DiceTwo/>
-            break;
-        case 3:
-            diceNum = <DiceThree/>
-            break;
-        case 4:
-            diceNum = <DiceFour/>
-            break;
-        case 5:
-            diceNum = <DiceFive/>
-            break;
-        case 6:
-            diceNum = <DiceSix/>
-            break;
-        default:
-            throw new Error('Number not allowed');
-    }
+    const [diceNum, setDiceNum] = useState(<></>)
+    const {game, rollDiceRequestAction} = props;
+
+    useEffect(() => {
+        switch (game.dice) {
+            case 1:
+                setDiceNum(<DiceOne/>)
+                break;
+            case 2:
+                setDiceNum(<DiceTwo/>)
+                break;
+            case 3:
+                setDiceNum(<DiceThree/>)
+                break;
+            case 4:
+                setDiceNum(<DiceFour/>)
+                break;
+            case 5:
+                setDiceNum(<DiceFive/>)
+                break;
+            case 6:
+                setDiceNum(<DiceSix/>)
+                break;
+            default:
+                setDiceNum(<></>)
+                break;
+        }
+    }, [game.dice])
+
+
     return (
         <div style={{
             height: '96px',
@@ -38,10 +47,14 @@ const Dice = (props) => {
             display: 'flex',
             margin: '24px',
             borderRadius: '20px'
-        }} onClick={onRoll}>
+        }} onClick={() => rollDiceRequestAction()}>
             {diceNum}
         </div>
     )
 }
 
-export default Dice;
+const mapDispatchToProps = {rollDiceRequestAction}
+const mapStateToProps = state => {
+    return {game: state.gameReducer};
+};
+export default connect(mapStateToProps, mapDispatchToProps)(Dice);

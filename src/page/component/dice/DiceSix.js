@@ -11,8 +11,9 @@ const DiceSix = () => {
             justifyContent: 'space-around'
         }}>
             {
-                [...Array(3).keys()].map(() => (
-                    <div style={{display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-around'}}>
+                [...Array(3).keys()].map((i) => (
+                    <div key={i}
+                         style={{display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-around'}}>
                         <DiceDot/>
                         <DiceDot/>
                     </div>

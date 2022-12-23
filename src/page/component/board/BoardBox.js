@@ -1,28 +1,29 @@
 import PionPlayer from "../player/PionPlayer";
 import Box from "./Box";
+import {connect} from "react-redux";
 
-const BoardBox = ({rowIdx, playerPos}) => {
+const BoardBox = ({rowIdx, game}) => {
     const boxes = [];
 
     const setPlayerPion = (boxIdx) => {
         const playersPion = [];
-        playerPos.forEach((value, i) => {
+        game.playerPosition.forEach((value, i) => {
             if (boxIdx === value) {
-                playersPion.push(<PionPlayer playerNum={'' + (i + 1)}/>)
+                playersPion.push(<PionPlayer key={i} playerNum={'' + (i + 1)}/>)
             }
         });
         return playersPion;
     }
     if (rowIdx % 2 !== 0) {
         for (let i = (rowIdx * 10) + 10; i >= (rowIdx * 10) + 1; i--) {
-            boxes.push(<Box boxNum={i}>
+            boxes.push(<Box key={i} boxNum={i}>
                 {setPlayerPion(i)}
             </Box>)
 
         }
     } else {
         for (let i = (rowIdx * 10) + 1; i <= (rowIdx * 10) + 10; i++) {
-            boxes.push(<Box boxNum={i}>
+            boxes.push(<Box key={i} boxNum={i}>
                 {setPlayerPion(i)}
             </Box>)
         }
@@ -35,4 +36,8 @@ const BoardBox = ({rowIdx, playerPos}) => {
     );
 }
 
-export default BoardBox;
+const mapStateToProps = state => {
+    return {game: state.gameReducer};
+};
+
+export default connect(mapStateToProps)(BoardBox);

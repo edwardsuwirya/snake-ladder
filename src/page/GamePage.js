@@ -1,118 +1,117 @@
 import {useEffect, useState} from "react";
 import {jump} from "../util/jump";
-import {randomInteger} from "../util/randomUtil";
 import Board from "./component/board/Board";
 import PionPlayer from "./component/player/PionPlayer";
 import Dice from "./component/dice/Dice";
+import {connect} from "react-redux";
+import {
+    resetRequestAction,
+    setCurrentPlayerRequestAction,
+    setPlayerPositionRequestAction,
+    setWinnerRequestAction
+} from "../state/game/gameAction";
 
-const GamePage = ({totalPlayer}) => {
-    const [dice, setDice] = useState(0);
-    const [playerPos, setPlayerPos] = useState({
-        currentPlayer: '1', pos: [1, 1]
-    });
-    const [counterMove, setCounterMove] = useState(0);
-
-    const [winner, setWinner] = useState(null);
-
+const GamePage = ({
+                      totalPlayer,
+                      game,
+                      setCurrentPlayerRequestAction,
+                      setPlayerPositionRequestAction,
+                      setWinnerRequestAction,
+                      resetRequestAction,
+                  }) => {
+    const [counterMove, setCounterMove] = useState(null);
 
     useEffect(() => {
-        if (winner) {
-            alert('Player ' + winner + ' is the winner');
-            reset();
+        setPlayerPositionRequestAction(Array(totalPlayer).fill(1));
+    }, [game.winner]);
+
+    useEffect(() => {
+        const currPlayerPos = game.playerPosition[game.currentPlayer - 1];
+        const lastPos = currPlayerPos + game.dice;
+        if (lastPos <= 100) {
+            setCounterMove(game.dice);
+        } else if (lastPos >= 100) {
+            setCounterMove(-1);
         }
-    }, [winner]);
+    }, [game.dice])
 
     const reset = () => {
-        setDice(0);
-        setWinner(null);
-        setPlayerPos({
-            currentPlayer: '0', pos: [1, 1]
-        })
+        resetRequestAction();
+        setCounterMove(null);
+    }
+
+    const changePlayer = () => {
+        if (game.currentPlayer === '' + totalPlayer) {
+            setCurrentPlayerRequestAction('1');
+        } else {
+            const playerTurn = Number(game.currentPlayer) + 1;
+            setCurrentPlayerRequestAction('' + playerTurn);
+        }
     }
 
     useEffect(() => {
-        const changePlayer = () => {
-            if (playerPos.currentPlayer === '' + totalPlayer) {
-                setPlayerPos(prevState => ({...prevState, currentPlayer: '1'}));
-            } else {
-                const playerTurn = Number(playerPos.currentPlayer) + 1;
-                setPlayerPos(prevState => ({...prevState, currentPlayer: '' + playerTurn}));
-            }
-        }
         const to = setTimeout(() => {
-            if (counterMove === -1) {
-                changePlayer();
-                setDice(0);
-            } else if (counterMove !== 0) {
-                setCounterMove(prevState => prevState - 1);
-                playerMovement(1);
-            } else {
-                playerPos.pos.forEach((p) => {
-                    const jumpNo = jump(p);
-                    playerMovement(jumpNo);
-                })
-                if (dice !== 6 && dice !== 0) {
+            if (counterMove != null) {
+                if (counterMove === -1) {
                     changePlayer();
+                } else if (counterMove > 0 && counterMove <= 6) {
+                    setCounterMove(prevState => prevState - 1);
+                    playerMovement(1);
+                } else {
+                    const jumpNo = jump(game.playerPosition[game.currentPlayer - 1]);
+                    playerMovement(jumpNo);
+                    if (game.dice !== 6 && game.dice !== 0) {
+                        changePlayer();
+                    }
                 }
-                setDice(0);
+
             }
         }, 500);
+        if (game.playerPosition[game.currentPlayer - 1] === 100) {
+            setWinnerRequestAction(game.currentPlayer);
+        }
         return () => {
             clearTimeout(to);
         };
     }, [counterMove]);
 
+    useEffect(() => {
+        if (game.winner) {
+            alert('Player ' + game.winner + ' is the winner');
+            reset();
+        }
+    }, [game.winner]);
+
+
     const playerMovement = (moveNumber) => {
-        const validatePos100 = (playerNo, playerPos) => {
-            let lastPos = playerPos + moveNumber;
-            if (lastPos === 100) {
-                setWinner(playerNo);
-            }
-            return lastPos;
-        }
-        playerPos.pos.forEach((p, idx) => {
-            const pIdx = idx + 1;
-            if (playerPos.currentPlayer === '' + pIdx) {
-                setPlayerPos(prevState => {
-                    prevState.pos[idx] = validatePos100('' + pIdx, p);
-                    return {...prevState, pos: [...prevState.pos]}
-                });
-            }
-        })
+        const playerNo = game.currentPlayer;
+        const newPos = [...game.playerPosition];
+        newPos[playerNo - 1] = newPos[playerNo - 1] + moveNumber;
+        setPlayerPositionRequestAction(newPos)
     }
 
-
-    const roll = () => {
-        if (counterMove === 0 || counterMove === -1) {
-            const diceNo = randomInteger(1, 6);
-            setDice(diceNo);
-            playerPos.pos.forEach((p, idx) => {
-                const pIdx = idx + 1;
-                if (playerPos.currentPlayer === '' + pIdx) {
-                    console.log('rolling, curr player ' + pIdx);
-                    const lastPos = p + diceNo
-                    if (lastPos <= 100) {
-                        setCounterMove(diceNo);
-                    } else {
-                        setCounterMove(-1);
-                    }
-                }
-            })
-        }
-    }
     return (
         <div style={{margin: '24px', display: 'flex', flexDirection: 'row'}}>
             <div style={{display: 'flex', flexDirection: 'column-reverse', gap: '5px'}}>
-                <Board playerPos={playerPos.pos}/>
+                <Board/>
             </div>
             <div style={{marginLeft: '64px'}}>
                 <h1 style={{margin: '0px'}}>Simple Snake & Ladder</h1>
                 <p style={{margin: '0px'}}>By EnigmaCamp</p>
-                <p style={{marginTop: '64px'}}>Player's turn is {<PionPlayer playerNum={playerPos.currentPlayer}/>}</p>
-                <Dice num={dice} onRoll={roll}/>
+                <p style={{marginTop: '64px'}}>Player's turn is {<PionPlayer/>}</p>
+                <Dice/>
             </div>
         </div>
     );
 }
 
-export default GamePage;
+const mapDispatchToProps = {
+    setCurrentPlayerRequestAction,
+    setPlayerPositionRequestAction,
+    setWinnerRequestAction,
+    resetRequestAction,
+}
+const mapStateToProps = state => {
+    return {game: state.gameReducer};
+};
+export default connect(mapStateToProps, mapDispatchToProps)(GamePage);

@@ -10,8 +10,8 @@ const DiceFour = () => {
             justifyContent: 'space-around'
         }}>
             {
-                [...Array(2).keys()].map(() => (
-                    <div style={{display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-around'}}>
+                [...Array(2).keys()].map((i) => (
+                    <div key={i} style={{display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-around'}}>
                         <DiceDot/>
                         <DiceDot/>
                     </div>

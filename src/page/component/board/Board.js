@@ -1,11 +1,11 @@
 import BoardBox from "./BoardBox";
 
-const Board = ({playerPos = []}) => {
+const Board = () => {
     return (
         <>
             {
                 [...Array(10).keys()].map((idx) => (
-                    <BoardBox rowIdx={idx} playerPos={playerPos}/>
+                    <BoardBox key={idx} rowIdx={idx}/>
                 ))
             }
         </>
